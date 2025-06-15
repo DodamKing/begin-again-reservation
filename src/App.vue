@@ -1,26 +1,26 @@
 <template>
   <div class="bg-gray-50 min-h-screen">
     <!-- 전체 로딩 오버레이 -->
-    <div v-if="initialLoading || monthLoading" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
-      <div class="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div>
-      <h2 class="text-xl font-semibold text-gray-800 mb-2">비긴 어게인</h2>
-      <p class="text-gray-600">{{ loadingMessage }}</p>
+    <div v-if="initialLoading || monthLoading" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center px-4">
+      <div class="animate-spin w-10 h-10 sm:w-12 sm:h-12 border-4 border-blue-500 border-t-transparent rounded-full mb-3"></div>
+      <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-2 text-center">비긴 어게인</h2>
+      <p class="text-sm sm:text-base text-gray-600 text-center">{{ loadingMessage }}</p>
     </div>
 
-    <!-- 헤더 -->
+    <!-- 헤더 - 더 컴팩트하게 -->
     <header class="bg-white shadow-lg border-b border-gray-100">
-      <div class="max-w-md mx-auto px-4 py-6">
+      <div class="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <div class="text-center">
-          <div class="flex items-center justify-center mb-3">
-            <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-3 mr-3 shadow-md">
-              <span class="text-white text-xl">🎵</span>
+          <div class="flex items-center justify-center mb-2 sm:mb-3">
+            <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-2 sm:p-3 mr-2 sm:mr-3 shadow-md">
+              <img src="/logo.png" alt="비긴 어게인 로고" class="w-5 h-5 sm:w-6 sm:h-6 object-contain">
             </div>
             <div>
-              <h1 class="text-2xl font-bold text-gray-800">비긴 어게인</h1>
-              <p class="text-sm text-blue-600 font-medium">연습실 예약 시스템</p>
+              <h1 class="text-xl sm:text-2xl font-bold text-gray-800">비긴 어게인</h1>
+              <p class="text-xs sm:text-sm text-blue-600 font-medium">연습실 예약 시스템</p>
             </div>
           </div>
-          <div class="h-1 w-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
+          <div class="h-1 w-16 sm:w-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
         </div>
       </div>
     </header>
@@ -35,27 +35,30 @@
       @changeMonth="changeMonth"
     />
 
-    <!-- 플로팅 + 버튼 -->
-    <button 
-      @click="openCreateBooking()"
-      class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 z-40 flex items-center justify-center"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-      </svg>
-    </button>
+    <!-- 플로팅 버튼들 - 작은 화면에서 더 작게 -->
+    <div class="fixed bottom-4 sm:bottom-6 right-3 sm:right-6 flex flex-col space-y-2 sm:space-y-3 z-40">
+      <!-- 새로고침 버튼 -->
+      <button 
+        @click="refreshCurrentMonth" 
+        :disabled="monthLoading"
+        class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-600 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all duration-200 flex items-center justify-center disabled:opacity-50"
+      >
+        <svg v-if="!monthLoading" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <div v-else class="animate-spin w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full"></div>
+      </button>
 
-    <!-- 새로고침 버튼 -->
-    <button 
-      @click="refreshCurrentMonth" 
-      :disabled="monthLoading"
-      class="fixed bottom-24 right-6 w-12 h-12 bg-gray-600 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all duration-200 z-40 flex items-center justify-center disabled:opacity-50"
-    >
-      <svg v-if="!monthLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-      </svg>
-      <div v-else class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-    </button>
+      <!-- + 버튼 -->
+      <button 
+        @click="openCreateBooking()"
+        class="w-12 h-12 sm:w-14 sm:h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 flex items-center justify-center"
+      >
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+      </button>
+    </div>
 
     <!-- 예약 폼 모달 -->
     <BookingForm 
@@ -68,52 +71,56 @@
       @close="closeBookingForm"
     />
 
-    <!-- 날짜별 예약 목록 모달 -->
+    <!-- 날짜별 예약 목록 모달 - 더 작은 화면에 최적화 -->
     <div v-if="showDateModal" 
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4"
          @click.self="closeDateModal">
-      <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[32rem] overflow-y-auto">
-        <div class="flex justify-between items-start mb-4">
-          <h3 class="text-lg font-semibold">{{ formatSelectedDate() }} 예약 현황</h3>
-          <button @click="closeDateModal" class="text-gray-400 hover:text-gray-600 text-xl">
+      <div class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-lg mx-2 sm:mx-4 max-h-[85vh] sm:max-h-[32rem] overflow-y-auto">
+        <div class="flex justify-between items-start mb-3 sm:mb-4">
+          <h3 class="text-base sm:text-lg font-semibold pr-2">{{ formatSelectedDate() }} 예약 현황</h3>
+          <button @click="closeDateModal" class="text-gray-400 hover:text-gray-600 text-xl flex-shrink-0 w-8 h-8 flex items-center justify-center">
             ✕
           </button>
         </div>
 
-        <div v-if="selectedDateBookings.length === 0" class="text-center py-8 text-gray-500">
-          📅 이 날에는 예약이 없습니다.<br>
+        <div v-if="selectedDateBookings.length === 0" class="text-center py-6 sm:py-8 text-gray-500">
+          <div class="text-2xl sm:text-3xl mb-2">📅</div>
+          <div class="text-sm sm:text-base mb-3">이 날에는 예약이 없습니다.</div>
           <button 
             @click="openCreateBookingForDate"
-            class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
           >
             예약하기
           </button>
         </div>
         
-        <div v-else class="space-y-3">
+        <div v-else class="space-y-2 sm:space-y-3">
           <div 
             v-for="booking in selectedDateBookings" 
             :key="booking.id"
             class="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors"
           >
             <div class="flex justify-between items-start">
-              <div class="flex-1 cursor-pointer" @click="showBookingDetail(booking); closeDateModal()">
-                <div class="font-medium text-gray-900 mb-1">{{ booking.name }}</div>
-                <div class="text-sm text-gray-600 space-y-1">
-                  <div>⏰ {{ booking.startTime }} ~ {{ booking.endTime }}</div>
-                  <div>🎯 {{ booking.purpose }}</div>
+              <div class="flex-1 cursor-pointer min-w-0" @click="showBookingDetail(booking); closeDateModal()">
+                <div class="font-medium text-gray-900 mb-1 text-sm sm:text-base truncate">{{ booking.name }}</div>
+                <div class="text-xs sm:text-sm text-gray-600 space-y-1">
+                  <div class="flex items-center">⏰ {{ booking.startTime }} ~ {{ booking.endTime }}</div>
+                  <div class="flex items-start">
+                    <span class="mr-1 flex-shrink-0">🎯</span>
+                    <span class="break-words">{{ booking.purpose }}</span>
+                  </div>
                 </div>
               </div>
-              <div class="flex space-x-1 ml-2">
+              <div class="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1 ml-2 flex-shrink-0">
                 <button 
                   @click="openEditBooking(booking); closeDateModal()"
-                  class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200"
+                  class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200 whitespace-nowrap"
                 >
                   수정
                 </button>
                 <button 
                   @click="confirmDelete(booking); closeDateModal()"
-                  class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200"
+                  class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 whitespace-nowrap"
                 >
                   삭제
                 </button>
@@ -125,7 +132,7 @@
           <div class="pt-3 border-t border-gray-200">
             <button 
               @click="openCreateBookingForDate"
-              class="w-full py-2 px-4 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium"
+              class="w-full py-2 px-4 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm sm:text-base"
             >
               + 이 날에 새 예약 추가하기
             </button>
@@ -152,28 +159,28 @@
       @hideToast="hideToast"
     />
 
-    <!-- 푸터 -->
-    <footer class="bg-gray-800 text-gray-300 py-8 mt-12">
-      <div class="max-w-md mx-auto px-4">
+    <!-- 푸터 - 모바일에 최적화 -->
+    <footer class="bg-gray-800 text-gray-300 py-6 sm:py-8 mt-8 sm:mt-12">
+      <div class="max-w-md mx-auto px-3 sm:px-4">
         <!-- 기존 푸터 내용 -->
-        <div class="text-center mb-6">
+        <div class="text-center mb-4 sm:mb-6">
           <div class="flex items-center justify-center mb-2">
             <div class="bg-blue-600 rounded-full p-2 mr-2">
-              🎵
+              <img src="/logo.png" alt="비긴 어게인 로고" class="w-3 h-3 sm:w-4 sm:h-4 object-contain">
             </div>
-            <span class="text-white font-semibold">비긴 어게인 모임</span>
+            <span class="text-white font-semibold text-sm sm:text-base">비긴 어게인 모임</span>
           </div>
-          <p class="text-sm text-gray-400">연습실 예약 시스템</p>
+          <p class="text-xs sm:text-sm text-gray-400">연습실 예약 시스템</p>
         </div>
         
-        <div class="bg-gray-700 rounded-lg p-4 mb-4">
-          <h4 class="text-white font-medium mb-3 flex items-center">
+        <div class="bg-gray-700 rounded-lg p-3 sm:p-4 mb-4">
+          <h4 class="text-white font-medium mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
             <span class="mr-2">💡</span>
             이용 안내
           </h4>
-          <div class="space-y-2 text-sm">
+          <div class="space-y-2 text-xs sm:text-sm">
             <div class="flex items-start">
-              <span class="mr-2 text-yellow-400">💰</span>
+              <span class="mr-2 text-yellow-400 flex-shrink-0">💰</span>
               <div>
                 <strong class="text-white">게스트 연습실 사용비:</strong> 1인당 5,000원<br>
                 <span class="text-gray-400">모임 통장으로 입금해 주세요</span>
@@ -181,15 +188,15 @@
             </div>
             
             <div class="flex items-start">
-              <span class="mr-2 text-blue-400">📍</span>
+              <span class="mr-2 text-blue-400 flex-shrink-0">📍</span>
               <div>
                 <strong class="text-white">주소:</strong><br>
-                <span class="text-gray-400">충청북도 청주시 서원구 내수동로 165<br>예술원 24시 연습실 3층 2호실</span>
+                <span class="text-gray-400 break-words">충청북도 청주시 서원구 내수동로 165<br>예술원 24시 연습실 3층 2호실</span>
               </div>
             </div>
             
             <div class="flex items-start">
-              <span class="mr-2 text-green-400">🔐</span>
+              <span class="mr-2 text-green-400 flex-shrink-0">🔐</span>
               <div>
                 <strong class="text-white">출입 정보:</strong><br>
                 <span class="text-gray-400">
@@ -200,16 +207,16 @@
             </div>
             
             <div class="flex items-start">
-              <span class="mr-2 text-red-400">🚪</span>
+              <span class="mr-2 text-red-400 flex-shrink-0">🚪</span>
               <div>
                 <strong class="text-white">퇴실 시 주의:</strong><br>
-                <span class="text-gray-400">'#' 버튼을 눌러 출입문을 잠궈주세요!</span>
+                <span class="text-gray-400">나갈 때 '#' 버튼을 눌러 출입문을 잠궈주세요!</span>
               </div>
             </div>
           </div>
         </div>
         
-        <div class="text-center text-xs text-gray-500 border-t border-gray-700 pt-4">
+        <div class="text-center text-xs text-gray-500 border-t border-gray-700 pt-3 sm:pt-4">
           Made with ❤️ for 비긴 어게인
         </div>
       </div>
@@ -218,7 +225,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import BookingCalendar from './components/BookingCalendar.vue'
 import BookingForm from './components/BookingForm.vue'
 import BookingModals from './components/BookingModals.vue'
@@ -241,6 +248,48 @@ export default {
   setup() {
     // API URL
     const API_URL = 'https://script.google.com/macros/s/AKfycbyGrxON-jfeEGL6b78HfRpDQLkqpeqxVw3wNdiok-9G7NwCv4-02ITUaPratUwOFFmj/exec'
+    
+    // 모바일 뒤로가기 대응을 위한 히스토리 관리
+    const modalHistory = ref([])
+    
+    // 히스토리에 모달 상태 추가
+    const pushModalHistory = (modalType) => {
+      modalHistory.value.push(modalType)
+      // 브라우저 히스토리에 상태 추가
+      window.history.pushState({ modal: modalType }, '', window.location.href)
+    }
+    
+    // 뒤로가기 이벤트 처리
+    const handlePopState = () => {
+      if (modalHistory.value.length > 0) {
+        const lastModal = modalHistory.value.pop()
+        
+        // 어떤 모달이었는지에 따라 닫기
+        switch (lastModal) {
+          case 'dateModal':
+            showDateModal.value = false
+            selectedDateBookings.value = []
+            selectedDateString.value = ''
+            break
+          case 'bookingForm':
+            showBookingForm.value = false
+            resetForm()
+            break
+          case 'bookingDetail':
+            selectedBooking.value = null
+            break
+          case 'deleteModal':
+            showDeleteModal.value = false
+            bookingToDelete.value = null
+            break
+        }
+        
+        // 브라우저 히스토리 조작을 막기 위해 다시 상태 추가
+        if (modalHistory.value.length === 0) {
+          window.history.replaceState(null, '', window.location.href)
+        }
+      }
+    }
     
     // 상태 관리
     const currentMonthBookings = ref([]) // 현재 달 예약만 저장
@@ -576,7 +625,7 @@ export default {
       showToast('success', '새로고침 완료', '최신 데이터를 불러왔습니다')
     }
 
-    // 나머지 함수들 (기존과 동일)
+    // 나머지 함수들
     const openCreateBooking = (date = null) => {
       resetForm()
       if (date) {
@@ -584,6 +633,9 @@ export default {
         selectedDate.value     = date;  // 달력 하이라이트
       }
       showBookingForm.value = true
+      
+      // 모달 히스토리에 추가
+      pushModalHistory('bookingForm')
     }
 
     const openEditBooking = (booking) => {
@@ -591,11 +643,25 @@ export default {
       editingId.value = booking.id
       selectedBooking.value = null
       showBookingForm.value = true
+      
+      // 모달 히스토리에 추가
+      pushModalHistory('bookingForm')
     }
 
     const closeBookingForm = () => {
       showBookingForm.value = false
       resetForm()
+      
+      // 히스토리에서 제거 (뒤로가기로 닫힌 경우가 아닐 때만)
+      if (modalHistory.value[modalHistory.value.length - 1] === 'bookingForm') {
+        modalHistory.value.pop()
+        // 직접 닫기 버튼으로 닫은 경우에만 브라우저 히스토리 조작
+        if (modalHistory.value.length > 0) {
+          window.history.back()
+        } else {
+          window.history.replaceState(null, '', window.location.href)
+        }
+      }
     }
 
     const confirmDelete = (booking) => {
@@ -603,12 +669,25 @@ export default {
       selectedBooking.value = null  // 상세 모달 닫기
       showDateModal.value = false   // 날짜 모달도 닫기
       showDeleteModal.value = true
+      
+      // 모달 히스토리에 추가
+      pushModalHistory('deleteModal')
     }
 
     const cancelDelete = () => {
       showDeleteModal.value = false
       bookingToDelete.value = null
-      // selectedBooking은 그대로 유지해서 상세 모달로 돌아갈 수 있게
+      
+      // 히스토리에서 제거 (뒤로가기로 닫힌 경우가 아닐 때만)
+      if (modalHistory.value[modalHistory.value.length - 1] === 'deleteModal') {
+        modalHistory.value.pop()
+        // 직접 닫기 버튼으로 닫은 경우에만 브라우저 히스토리 조작
+        if (modalHistory.value.length > 0) {
+          window.history.back()
+        } else {
+          window.history.replaceState(null, '', window.location.href)
+        }
+      }
     }
 
     const resetForm = () => {
@@ -630,12 +709,26 @@ export default {
         return a.startTime.localeCompare(b.startTime)
       })
       showDateModal.value = true
+      
+      // 모달 히스토리에 추가
+      pushModalHistory('dateModal')
     }
 
     const closeDateModal = () => {
       showDateModal.value = false
       selectedDateBookings.value = []
       selectedDateString.value = ''
+      
+      // 히스토리에서 제거 (뒤로가기로 닫힌 경우가 아닐 때만)
+      if (modalHistory.value[modalHistory.value.length - 1] === 'dateModal') {
+        modalHistory.value.pop()
+        // 직접 닫기 버튼으로 닫은 경우에만 브라우저 히스토리 조작
+        if (modalHistory.value.length > 0) {
+          window.history.back()
+        } else {
+          window.history.replaceState(null, '', window.location.href)
+        }
+      }
     }
 
     const formatSelectedDate = () => {
@@ -651,16 +744,43 @@ export default {
 
     const openCreateBookingForDate = () => {
       const targetDate = selectedDateString.value; // 1) 값 백업
-      closeDateModal();                            // 2) 모달 닫으면서 초기화돼도 무관
-      openCreateBooking(targetDate);               // 3) 백업한 날짜 전달
+      
+      // 2) 날짜 모달 닫기 (히스토리 정리 포함)
+      showDateModal.value = false
+      selectedDateBookings.value = []
+      selectedDateString.value = ''
+      
+      // 히스토리에서 dateModal 제거
+      if (modalHistory.value[modalHistory.value.length - 1] === 'dateModal') {
+        modalHistory.value.pop()
+      }
+      
+      // 3) 잠깐 기다린 후 예약 폼 열기 (히스토리 충돌 방지)
+      setTimeout(() => {
+        openCreateBooking(targetDate); // 백업한 날짜로 예약 폼 열기
+      }, 100)
     }
 
     const showBookingDetail = (booking) => {
       selectedBooking.value = booking
+      
+      // 모달 히스토리에 추가
+      pushModalHistory('bookingDetail')
     }
 
     const closeBookingDetail = () => {
       selectedBooking.value = null
+      
+      // 히스토리에서 제거 (뒤로가기로 닫힌 경우가 아닐 때만)
+      if (modalHistory.value[modalHistory.value.length - 1] === 'bookingDetail') {
+        modalHistory.value.pop()
+        // 직접 닫기 버튼으로 닫은 경우에만 브라우저 히스토리 조작
+        if (modalHistory.value.length > 0) {
+          window.history.back()
+        } else {
+          window.history.replaceState(null, '', window.location.href)
+        }
+      }
     }
 
     const showToast = (type, title, message = '') => {
@@ -688,6 +808,14 @@ export default {
     // Lifecycle
     onMounted(async () => {
       await initialLoad()
+      
+      // 뒤로가기 이벤트 리스너 등록
+      window.addEventListener('popstate', handlePopState)
+    })
+    
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    onUnmounted(() => {
+      window.removeEventListener('popstate', handlePopState)
     })
 
     return {
