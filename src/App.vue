@@ -326,8 +326,7 @@ export default {
         window[callbackName] = (result) => {
           clearTimeout(timeoutId)
           cleanup()
-          console.log(`API 응답 (${action}):`, result)
-          
+
           if (result && result.success) {
             resolve(result)
           } else {
@@ -342,11 +341,9 @@ export default {
         if (action === 'get') {
           const { startDate, endDate } = getMonthDateRange()
           url += `&startDate=${startDate}&endDate=${endDate}`
-          console.log(`월별 데이터 요청: ${startDate} ~ ${endDate}`)
         } else if (data) {
           if (action === 'delete') {
             url += `&id=${encodeURIComponent(data)}`
-            console.log(`삭제 요청 ID: ${data}`)
           } else {
             // 예약 데이터 추가
             Object.keys(data).forEach(key => {
@@ -365,8 +362,6 @@ export default {
           }
         }
         
-        console.log(`API 요청 (${action}):`, url.length > 150 ? url.substring(0, 150) + '...' : url)
-        
         const script = document.createElement('script')
         script.src = url
         script.onerror = () => {
@@ -380,11 +375,10 @@ export default {
     }
 
     // 월별 예약 데이터 로드 (핵심!)
-    const loadMonthBookings = async (date = currentDate.value) => {
+    const loadMonthBookings = async () => {
       try {
         loadingMessage.value = '예약 데이터를 불러오는 중입니다...';
         monthLoading.value = true
-        console.log('월별 예약 로딩 시작:', getMonthDateRange(date))
         
         const response = await callAPI('get')
         
@@ -397,8 +391,6 @@ export default {
             if (dateCompare !== 0) return dateCompare
             return a.startTime.localeCompare(b.startTime)
           })
-          
-          console.log(`월별 데이터 로딩 완료: ${currentMonthBookings.value.length}개`)
         } else {
           throw new Error('응답 데이터가 올바르지 않습니다')
         }
@@ -502,10 +494,8 @@ export default {
 
       try {
         deleteLoading.value = true
-        console.log('삭제 요청:', bookingToDelete.value.id)
         
         const response = await callAPI('delete', bookingToDelete.value.id)
-        console.log('삭제 응답:', response)
         
         if (response && response.success) {
           // 로컬 데이터에서 제거
@@ -609,7 +599,6 @@ export default {
     }
 
     const confirmDelete = (booking) => {
-      console.log('삭제 확인 요청:', booking)
       bookingToDelete.value = booking
       selectedBooking.value = null  // 상세 모달 닫기
       showDateModal.value = false   // 날짜 모달도 닫기
@@ -617,7 +606,6 @@ export default {
     }
 
     const cancelDelete = () => {
-      console.log('삭제 취소')
       showDeleteModal.value = false
       bookingToDelete.value = null
       // selectedBooking은 그대로 유지해서 상세 모달로 돌아갈 수 있게
@@ -699,7 +687,6 @@ export default {
 
     // Lifecycle
     onMounted(async () => {
-      console.log('Vue 3 앱 마운트됨')
       await initialLoad()
     })
 
