@@ -192,7 +192,10 @@
               <span class="mr-2 text-green-400">🔐</span>
               <div>
                 <strong class="text-white">출입 정보:</strong><br>
-                <span class="text-gray-400">현관 비밀번호: ****<br>호실 비밀번호: ****</span>
+                <span class="text-gray-400">
+                  현관 비밀번호: {{ doorPassword }}<br>
+                  호실 비밀번호: {{ roomPassword }}
+                </span>
               </div>
             </div>
             
@@ -228,6 +231,12 @@ export default {
     BookingForm,
     BookingModals,
     ToastNotification
+  },
+  data() {
+    return {
+      doorPassword: import.meta.env.VITE_DOOR_PASSWORD || '****',
+      roomPassword: import.meta.env.VITE_ROOM_PASSWORD || '****'
+    };
   },
   setup() {
     // API URL
