@@ -213,6 +213,14 @@
                 <span class="text-gray-400">나갈 때 '#' 버튼을 눌러 출입문을 잠궈주세요!</span>
               </div>
             </div>
+
+            <div class="flex items-start">
+              <span class="mr-2 text-orange-400 flex-shrink-0">🚗</span>
+              <div>
+                <strong class="text-white">주차 안내:</strong><br>
+                <span class="text-gray-400">연습실 옆 주차장 주차 금지<br>길가나 상가에 주차하고 오셔야 합니다</span>
+              </div>
+            </div>
           </div>
         </div>
         

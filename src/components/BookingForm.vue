@@ -80,7 +80,7 @@
             :value="booking.purpose"
             @input="$emit('update:booking', { ...booking, purpose: $event.target.value })"
             type="text" 
-            placeholder="예: 파트 연습, 밴드 연습 등"
+            placeholder="사용 목적을 간단히 입력하세요"
             class="w-full px-3 py-3 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           >
