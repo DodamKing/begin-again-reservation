@@ -104,7 +104,9 @@
               <div class="flex-1 cursor-pointer min-w-0" @click="showBookingDetail(booking); closeDateModal()">
                 <div class="font-medium text-gray-900 mb-1 text-sm sm:text-base truncate">{{ booking.name }}</div>
                 <div class="text-xs sm:text-sm text-gray-600 space-y-1">
-                  <div class="flex items-center">⏰ {{ booking.startTime }} ~ {{ booking.endTime }}</div>
+                  <div class="flex items-center">
+                    ⏰ {{ booking.startTime }} ~ {{ booking.endTime }}
+                  </div>
                   <div class="flex items-start">
                     <span class="mr-1 flex-shrink-0">🎯</span>
                     <span class="break-words">{{ booking.purpose }}</span>
@@ -263,7 +265,6 @@ export default {
     // 히스토리에 모달 상태 추가
     const pushModalHistory = (modalType) => {
       modalHistory.value.push(modalType)
-      // 브라우저 히스토리에 상태 추가
       window.history.pushState({ modal: modalType }, '', window.location.href)
     }
     
@@ -272,7 +273,6 @@ export default {
       if (modalHistory.value.length > 0) {
         const lastModal = modalHistory.value.pop()
         
-        // 어떤 모달이었는지에 따라 닫기
         switch (lastModal) {
           case 'dateModal':
             showDateModal.value = false
@@ -292,7 +292,6 @@ export default {
             break
         }
         
-        // 브라우저 히스토리 조작을 막기 위해 다시 상태 추가
         if (modalHistory.value.length === 0) {
           window.history.replaceState(null, '', window.location.href)
         }
@@ -300,7 +299,7 @@ export default {
     }
     
     // 상태 관리
-    const currentMonthBookings = ref([]) // 현재 달 예약만 저장
+    const currentMonthBookings = ref([])
     const initialLoading = ref(true)
     const monthLoading = ref(false)
     const formLoading = ref(false)
@@ -341,22 +340,73 @@ export default {
     const getMonthDateRange = (date = currentDate.value) => {
       const year = date.getFullYear()
       const month = date.getMonth()
-
       const start = new Date(year, month, 1)
-      const end   = new Date(year, month + 1, 0)
+      const end = new Date(year, month + 1, 0)
 
-      // 한국(+09:00) 기준으로 ISO 날짜를 뽑으면 전날로 밀릴 수 있으니
-      // toISOString() 대신 아래처럼 보정
       const toYMD = d => d.toLocaleDateString('ko-KR', {
         year:'numeric', month:'2-digit', day:'2-digit'
       }).replace(/\. /g, '-').replace('.', '')
 
       return {
-        startDate: toYMD(start),  // 06-01
-        endDate:   toYMD(end)     // 06-30
+        startDate: toYMD(start),
+        endDate: toYMD(end)
       }
     }
 
+    // 시간을 분으로 변환 (24시간 기준, 단순화)
+    const timeToMinutes = (time) => {
+      // 24:00을 특별 처리
+      if (time === '24:00') return 24 * 60
+      
+      const [hours, minutes] = time.split(':').map(Number)
+      return hours * 60 + minutes
+    }
+
+    // 시간 겹침 확인 함수 (단순화)
+    const isTimeOverlap = (start1, end1, start2, end2) => {
+      const start1Min = timeToMinutes(start1)
+      const end1Min = timeToMinutes(end1)
+      const start2Min = timeToMinutes(start2)
+      const end2Min = timeToMinutes(end2)
+
+      return start1Min < end2Min && end1Min > start2Min
+    }
+
+    // 시간 충돌 확인 (단순화)
+    const checkTimeConflict = () => {
+      timeConflictWarning.value = ''
+      
+      if (!newBooking.value.date || !newBooking.value.startTime || !newBooking.value.endTime) {
+        return
+      }
+
+      // 기본 유효성 검사: 종료시간이 시작시간보다 늦어야 함
+      const startMin = timeToMinutes(newBooking.value.startTime)
+      const endMin = timeToMinutes(newBooking.value.endTime)
+      
+      if (startMin >= endMin) {
+        timeConflictWarning.value = '종료 시간은 시작 시간보다 늦어야 합니다'
+        return
+      }
+
+      // 같은 날짜의 다른 예약들과 겹침 확인
+      const conflicts = currentMonthBookings.value.filter(booking => {
+        if (booking.id === editingId.value) return false
+        if (booking.date !== newBooking.value.date) return false
+        
+        return isTimeOverlap(
+          newBooking.value.startTime, 
+          newBooking.value.endTime, 
+          booking.startTime, 
+          booking.endTime
+        )
+      })
+
+      if (conflicts.length > 0) {
+        const conflictNames = conflicts.map(b => b.name).join(', ')
+        timeConflictWarning.value = `겹치는 예약이 있습니다: ${conflictNames}`
+      }
+    }
 
     // 개선된 JSONP API 호출
     const callAPI = async (action, data = null) => {
@@ -392,7 +442,6 @@ export default {
           }
         }
         
-        // URL 구성
         let url = `${API_URL}?callback=${callbackName}&action=${action}&_t=${Date.now()}`
         
         if (action === 'get') {
@@ -402,11 +451,9 @@ export default {
           if (action === 'delete') {
             url += `&id=${encodeURIComponent(data)}`
           } else {
-            // 예약 데이터 추가
             Object.keys(data).forEach(key => {
               if (data[key] !== undefined && data[key] !== null) {
                 let value = data[key].toString()
-                // 텍스트 길이 제한
                 if (key === 'purpose' && value.length > 80) {
                   value = value.substring(0, 80)
                 }
@@ -431,7 +478,7 @@ export default {
       })
     }
 
-    // 월별 예약 데이터 로드 (핵심!)
+    // 월별 예약 데이터 로드
     const loadMonthBookings = async () => {
       try {
         loadingMessage.value = '예약 데이터를 불러오는 중입니다...';
@@ -440,7 +487,6 @@ export default {
         const response = await callAPI('get')
         
         if (response && response.data) {
-          // 받은 데이터를 바로 현재 달 예약으로 설정
           currentMonthBookings.value = response.data.filter(booking => 
             booking && booking.id && booking.date && booking.name
           ).sort((a, b) => {
@@ -514,14 +560,12 @@ export default {
             currentMonthBookings.value[index] = booking
           }
         } else {
-          // 새 예약이 현재 달에 속하면 추가
           const bookingDate = new Date(booking.date)
           const currentYear = currentDate.value.getFullYear()
           const currentMonth = currentDate.value.getMonth()
           
           if (bookingDate.getFullYear() === currentYear && bookingDate.getMonth() === currentMonth) {
             currentMonthBookings.value.push(booking)
-            // 정렬
             currentMonthBookings.value.sort((a, b) => {
               const dateCompare = new Date(a.date) - new Date(b.date)
               if (dateCompare !== 0) return dateCompare
@@ -555,20 +599,13 @@ export default {
         const response = await callAPI('delete', bookingToDelete.value.id)
         
         if (response && response.success) {
-          // 로컬 데이터에서 제거
           const deletedId = bookingToDelete.value.id
-          const originalLength = currentMonthBookings.value.length
-          
           currentMonthBookings.value = currentMonthBookings.value.filter(b => b.id !== deletedId)
           
-          console.log(`로컬 데이터 업데이트: ${originalLength} → ${currentMonthBookings.value.length}`)
-          
-          // 모든 모달 상태 초기화
           showDeleteModal.value = false
           selectedBooking.value = null
           bookingToDelete.value = null
           
-          // 날짜 모달이 열려있다면 해당 날짜 예약도 업데이트
           if (showDateModal.value && selectedDateString.value) {
             selectedDateBookings.value = selectedDateBookings.value.filter(b => b.id !== deletedId)
           }
@@ -586,44 +623,12 @@ export default {
       }
     }
 
-    // 시간 충돌 확인
-    const checkTimeConflict = () => {
-      timeConflictWarning.value = ''
-      
-      if (!newBooking.value.date || !newBooking.value.startTime || !newBooking.value.endTime) {
-        return
-      }
-
-      if (newBooking.value.startTime >= newBooking.value.endTime) {
-        timeConflictWarning.value = '종료 시간은 시작 시간보다 늦어야 합니다'
-        return
-      }
-
-      const conflicts = currentMonthBookings.value.filter(booking => {
-        if (booking.id === editingId.value) return false
-        if (booking.date !== newBooking.value.date) return false
-        
-        const newStart = newBooking.value.startTime
-        const newEnd = newBooking.value.endTime
-        const existingStart = booking.startTime
-        const existingEnd = booking.endTime
-        
-        return (newStart < existingEnd && newEnd > existingStart)
-      })
-
-      if (conflicts.length > 0) {
-        const conflictNames = conflicts.map(b => b.name).join(', ')
-        timeConflictWarning.value = `겹치는 예약이 있습니다: ${conflictNames}`
-      }
-    }
-
     // 달 변경
     const changeMonth = async (direction) => {
       const newDate = new Date(currentDate.value)
       newDate.setMonth(newDate.getMonth() + direction)
       currentDate.value = newDate
       
-      // 새 달 데이터 로드
       await loadMonthBookings(newDate)
     }
 
@@ -633,37 +638,33 @@ export default {
       showToast('success', '새로고침 완료', '최신 데이터를 불러왔습니다')
     }
 
-    // 나머지 함수들
+    // 예약 폼 열기
     const openCreateBooking = (date = null) => {
       resetForm()
       if (date) {
-        newBooking.value.date = date;   // 폼 기본 날짜
-        selectedDate.value     = date;  // 달력 하이라이트
+        newBooking.value.date = date
+        selectedDate.value = date
       }
       showBookingForm.value = true
-      
-      // 모달 히스토리에 추가
       pushModalHistory('bookingForm')
     }
 
+    // 예약 수정 폼 열기
     const openEditBooking = (booking) => {
       newBooking.value = { ...booking }
       editingId.value = booking.id
       selectedBooking.value = null
       showBookingForm.value = true
-      
-      // 모달 히스토리에 추가
       pushModalHistory('bookingForm')
     }
 
+    // 예약 폼 닫기
     const closeBookingForm = () => {
       showBookingForm.value = false
       resetForm()
       
-      // 히스토리에서 제거 (뒤로가기로 닫힌 경우가 아닐 때만)
       if (modalHistory.value[modalHistory.value.length - 1] === 'bookingForm') {
         modalHistory.value.pop()
-        // 직접 닫기 버튼으로 닫은 경우에만 브라우저 히스토리 조작
         if (modalHistory.value.length > 0) {
           window.history.back()
         } else {
@@ -672,24 +673,22 @@ export default {
       }
     }
 
+    // 삭제 확인
     const confirmDelete = (booking) => {
       bookingToDelete.value = booking
-      selectedBooking.value = null  // 상세 모달 닫기
-      showDateModal.value = false   // 날짜 모달도 닫기
+      selectedBooking.value = null
+      showDateModal.value = false
       showDeleteModal.value = true
-      
-      // 모달 히스토리에 추가
       pushModalHistory('deleteModal')
     }
 
+    // 삭제 취소
     const cancelDelete = () => {
       showDeleteModal.value = false
       bookingToDelete.value = null
       
-      // 히스토리에서 제거 (뒤로가기로 닫힌 경우가 아닐 때만)
       if (modalHistory.value[modalHistory.value.length - 1] === 'deleteModal') {
         modalHistory.value.pop()
-        // 직접 닫기 버튼으로 닫은 경우에만 브라우저 히스토리 조작
         if (modalHistory.value.length > 0) {
           window.history.back()
         } else {
@@ -698,6 +697,7 @@ export default {
       }
     }
 
+    // 폼 초기화
     const resetForm = () => {
       newBooking.value = {
         date: '',
@@ -710,6 +710,7 @@ export default {
       timeConflictWarning.value = ''
     }
 
+    // 날짜별 예약 보기
     const showDateBookings = (dateString) => {
       selectedDateString.value = dateString
       const dayBookings = currentMonthBookings.value.filter(booking => booking.date === dateString)
@@ -717,20 +718,17 @@ export default {
         return a.startTime.localeCompare(b.startTime)
       })
       showDateModal.value = true
-      
-      // 모달 히스토리에 추가
       pushModalHistory('dateModal')
     }
 
+    // 날짜 모달 닫기
     const closeDateModal = () => {
       showDateModal.value = false
       selectedDateBookings.value = []
       selectedDateString.value = ''
       
-      // 히스토리에서 제거 (뒤로가기로 닫힌 경우가 아닐 때만)
       if (modalHistory.value[modalHistory.value.length - 1] === 'dateModal') {
         modalHistory.value.pop()
-        // 직접 닫기 버튼으로 닫은 경우에만 브라우저 히스토리 조작
         if (modalHistory.value.length > 0) {
           window.history.back()
         } else {
@@ -739,6 +737,7 @@ export default {
       }
     }
 
+    // 선택된 날짜 포맷팅
     const formatSelectedDate = () => {
       if (!selectedDateString.value) return ''
       const date = new Date(selectedDateString.value)
@@ -750,39 +749,35 @@ export default {
       return date.toLocaleDateString('ko-KR', options)
     }
 
+    // 특정 날짜에 예약 추가
     const openCreateBookingForDate = () => {
-      const targetDate = selectedDateString.value; // 1) 값 백업
+      const targetDate = selectedDateString.value
       
-      // 2) 날짜 모달 닫기 (히스토리 정리 포함)
       showDateModal.value = false
       selectedDateBookings.value = []
       selectedDateString.value = ''
       
-      // 히스토리에서 dateModal 제거
       if (modalHistory.value[modalHistory.value.length - 1] === 'dateModal') {
         modalHistory.value.pop()
       }
       
-      // 3) 잠깐 기다린 후 예약 폼 열기 (히스토리 충돌 방지)
       setTimeout(() => {
-        openCreateBooking(targetDate); // 백업한 날짜로 예약 폼 열기
+        openCreateBooking(targetDate)
       }, 100)
     }
 
+    // 예약 상세 보기
     const showBookingDetail = (booking) => {
       selectedBooking.value = booking
-      
-      // 모달 히스토리에 추가
       pushModalHistory('bookingDetail')
     }
 
+    // 예약 상세 닫기
     const closeBookingDetail = () => {
       selectedBooking.value = null
       
-      // 히스토리에서 제거 (뒤로가기로 닫힌 경우가 아닐 때만)
       if (modalHistory.value[modalHistory.value.length - 1] === 'bookingDetail') {
         modalHistory.value.pop()
-        // 직접 닫기 버튼으로 닫은 경우에만 브라우저 히스토리 조작
         if (modalHistory.value.length > 0) {
           window.history.back()
         } else {
@@ -791,6 +786,7 @@ export default {
       }
     }
 
+    // 토스트 알림 표시
     const showToast = (type, title, message = '') => {
       toast.value = {
         show: true,
@@ -804,11 +800,12 @@ export default {
       }, 3000)
     }
 
+    // 토스트 알림 숨기기
     const hideToast = () => {
       toast.value.show = false
     }
 
-    // Watch
+    // Watch - 시간 충돌 확인 (단순화)
     watch(() => newBooking.value.date, checkTimeConflict)
     watch(() => newBooking.value.startTime, checkTimeConflict)
     watch(() => newBooking.value.endTime, checkTimeConflict)
@@ -816,12 +813,9 @@ export default {
     // Lifecycle
     onMounted(async () => {
       await initialLoad()
-      
-      // 뒤로가기 이벤트 리스너 등록
       window.addEventListener('popstate', handlePopState)
     })
     
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
     onUnmounted(() => {
       window.removeEventListener('popstate', handlePopState)
     })

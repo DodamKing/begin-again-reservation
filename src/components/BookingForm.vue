@@ -27,30 +27,42 @@
           >
         </div>
 
-        <!-- 시간 입력 -->
+        <!-- 시간 입력 (모달식 버튼 그리드) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">시간</label>
-          <div class="grid grid-cols-2 gap-2">
-            <select 
-              :value="booking.startTime" 
-              @change="$emit('update:booking', { ...booking, startTime: $event.target.value })"
-              class="px-3 py-3 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" 
-              required
-            >
-              <option value="">시작 시간</option>
-              <option v-for="time in timeSlots" :key="time" :value="time">{{ time }}</option>
-            </select>
-            <select 
-              :value="booking.endTime"
-              @change="$emit('update:booking', { ...booking, endTime: $event.target.value })"
-              class="px-3 py-3 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" 
-              required
-            >
-              <option value="">종료 시간</option>
-              <option v-for="time in timeSlots" :key="time" :value="time">{{ time }}</option>
-            </select>
-          </div>
           
+          <div class="grid grid-cols-2 gap-3">
+            <!-- 시작 시간 -->
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">시작 시간</label>
+              <button 
+                type="button"
+                @click="openStartTimeModal"
+                class="w-full px-3 py-3 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-left flex justify-between items-center"
+              >
+                <span>{{ booking.startTime || '선택하세요' }}</span>
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- 종료 시간 -->
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">종료 시간</label>
+              <button 
+                type="button"
+                @click="openEndTimeModal"
+                class="w-full px-3 py-3 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-left flex justify-between items-center"
+              >
+                <span>{{ booking.endTime || '선택하세요' }}</span>
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
           <!-- 시간 겹침 경고 -->
           <div v-if="timeConflictWarning" class="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
             <div class="flex items-start">
@@ -107,10 +119,41 @@
       </form>
     </div>
   </div>
+
+  <!-- 시간 선택 모달 -->
+  <div v-if="showTimeModal" 
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
+       @click.self="closeTimeModal">
+    <div class="bg-white rounded-lg p-6 w-full max-w-sm max-h-[70vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h4 class="text-lg font-semibold">{{ timeModalType === 'start' ? '시작' : '종료' }} 시간 선택</h4>
+        <button @click="closeTimeModal" class="text-gray-400 hover:text-gray-600 text-xl">
+          ✕
+        </button>
+      </div>
+      
+      <div class="grid grid-cols-4 gap-2">
+        <button 
+          v-for="time in currentTimeOptions" 
+          :key="time"
+          type="button"
+          @click="selectTime(time)"
+          :class="[
+            'px-2 py-3 text-sm rounded-md border transition-colors',
+            getCurrentSelectedTime() === time 
+              ? 'bg-blue-600 text-white border-blue-600' 
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 active:bg-gray-100'
+          ]"
+        >
+          {{ time }}
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
-import { onMounted, onUnmounted, nextTick, ref, watch } from 'vue'
+import { onMounted, onUnmounted, nextTick, ref, watch, computed } from 'vue'
 import flatpickr from 'flatpickr'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
 
@@ -143,11 +186,72 @@ export default {
     const dateInput = ref(null)
     let flatpickrInstance = null
     
-    const timeSlots = [
-      '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', 
-      '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', 
-      '21:00', '22:00', '23:00'
-    ]
+    // 시간 모달 상태 관리
+    const showTimeModal = ref(false)
+    const timeModalType = ref('start') // 'start' or 'end'
+    
+    // 시간 옵션 생성 (시작/종료에 따라 다름)
+    const getTimeOptions = (type) => {
+      const options = []
+      for (let hour = 0; hour < 24; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+          
+          // 시작 시간: 00:00 포함, 24:00 제외
+          // 종료 시간: 00:00 제외, 24:00 포함
+          if (type === 'start' && timeStr === '00:00') {
+            options.push(timeStr)
+          } else if (type === 'end' && timeStr === '00:00') {
+            continue // 00:00 제외
+          } else {
+            options.push(timeStr)
+          }
+        }
+      }
+      
+      // 종료 시간에만 24:00 추가
+      if (type === 'end') {
+        options.push('24:00')
+      }
+      
+      return options
+    }
+    
+    // 현재 모달 타입에 따른 시간 옵션
+    const currentTimeOptions = computed(() => {
+      return getTimeOptions(timeModalType.value)
+    })
+    
+    // 시간 모달 열기 함수들
+    const openStartTimeModal = () => {
+      timeModalType.value = 'start'
+      showTimeModal.value = true
+    }
+    
+    const openEndTimeModal = () => {
+      timeModalType.value = 'end'
+      showTimeModal.value = true
+    }
+    
+    // 시간 모달 닫기
+    const closeTimeModal = () => {
+      showTimeModal.value = false
+    }
+    
+    // 현재 선택된 시간 가져오기
+    const getCurrentSelectedTime = () => {
+      return timeModalType.value === 'start' ? props.booking.startTime : props.booking.endTime
+    }
+    
+    // 시간 선택 함수
+    const selectTime = (time) => {
+      if (timeModalType.value === 'start') {
+        emit('update:booking', { ...props.booking, startTime: time })
+      } else {
+        emit('update:booking', { ...props.booking, endTime: time })
+      }
+      closeTimeModal()
+    }
 
     const initDatePicker = () => {
       if (dateInput.value && !flatpickrInstance) {
@@ -210,7 +314,14 @@ export default {
 
     return {
       dateInput,
-      timeSlots
+      currentTimeOptions,
+      showTimeModal,
+      timeModalType,
+      openStartTimeModal,
+      openEndTimeModal,
+      closeTimeModal,
+      getCurrentSelectedTime,
+      selectTime
     }
   }
 }
