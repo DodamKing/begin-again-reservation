@@ -226,16 +226,24 @@ export default {
     const openStartTimeModal = () => {
       timeModalType.value = 'start'
       showTimeModal.value = true
+      // 히스토리에 시간 모달 상태 추가
+      window.history.pushState({ modal: 'timeModal' }, '', window.location.href)
     }
     
     const openEndTimeModal = () => {
       timeModalType.value = 'end'
       showTimeModal.value = true
+      // 히스토리에 시간 모달 상태 추가
+      window.history.pushState({ modal: 'timeModal' }, '', window.location.href)
     }
     
     // 시간 모달 닫기
     const closeTimeModal = () => {
       showTimeModal.value = false
+      // 시간 모달의 히스토리만 정리 (history.back() 사용하지 않음)
+      if (window.history.state?.modal === 'timeModal') {
+        window.history.replaceState(null, '', window.location.href)
+      }
     }
     
     // 현재 선택된 시간 가져오기
@@ -251,6 +259,20 @@ export default {
         emit('update:booking', { ...props.booking, endTime: time })
       }
       closeTimeModal()
+    }
+    
+    // 뒤로가기 이벤트 처리 (시간 모달 전용)
+    const handleTimeModalPopState = (event) => {
+      if (showTimeModal.value) {
+        // 시간 모달이 열려있는데 timeModal 상태가 아니면 닫기
+        if (!event.state || event.state.modal !== 'timeModal') {
+          showTimeModal.value = false
+          // 이벤트 전파 완전 차단
+          event.stopImmediatePropagation()
+          event.preventDefault()
+          return false
+        }
+      }
     }
 
     const initDatePicker = () => {
@@ -289,6 +311,10 @@ export default {
         initDatePicker()
       } else {
         destroyDatePicker()
+        // 예약 폼이 닫힐 때 시간 모달도 같이 닫기
+        if (showTimeModal.value) {
+          showTimeModal.value = false
+        }
       }
     })
 
@@ -301,6 +327,8 @@ export default {
 
     onMounted(async () => {
       document.addEventListener('keydown', handleEsc)
+      // 캡처링 모드로 먼저 실행되도록 우선순위 확보
+      window.addEventListener('popstate', handleTimeModalPopState, true)
       if (props.show) {
         await nextTick()
         initDatePicker()
@@ -309,6 +337,7 @@ export default {
 
     onUnmounted(() => {
       document.removeEventListener('keydown', handleEsc)
+      window.removeEventListener('popstate', handleTimeModalPopState, true)
       destroyDatePicker()
     })
 
