@@ -236,7 +236,6 @@
 
 <script>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { FirebaseService } from './services/firebaseService'
 import BookingCalendar from './components/BookingCalendar.vue'
 import BookingForm from './components/BookingForm.vue'
 import BookingModals from './components/BookingModals.vue'
@@ -257,6 +256,9 @@ export default {
     };
   },
   setup() {
+    // API URL
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyGrxON-jfeEGL6b78HfRpDQLkqpeqxVw3wNdiok-9G7NwCv4-02ITUaPratUwOFFmj/exec'
+    
     // 모바일 뒤로가기 대응을 위한 히스토리 관리
     const modalHistory = ref([])
     
@@ -297,7 +299,6 @@ export default {
     }
     
     // 상태 관리
-    let unsubscribe = null
     const currentMonthBookings = ref([])
     const initialLoading = ref(true)
     const monthLoading = ref(false)
@@ -334,31 +335,6 @@ export default {
       title: '',
       message: ''
     })
-
-    const setupRealtimeSync = () => {
-      if (unsubscribe) {
-        unsubscribe()
-      }
-
-      const { startDate, endDate } = getMonthDateRange()
-
-      unsubscribe = FirebaseService.subscribeToBookings(
-        startDate,
-        endDate,
-        (bookings) => {
-          currentMonthBookings.value = bookings.filter(booking =>
-            booking && booking.id && booking.date && booking.name
-          )
-
-          if (initialLoading.value) {
-            initialLoading.value = false
-          }
-          if (monthLoading.value) {
-            monthLoading.value = false
-          }
-        }
-      )
-    }
 
     // 월별 날짜 범위 계산
     const getMonthDateRange = (date = currentDate.value) => {
@@ -432,19 +408,101 @@ export default {
       }
     }
 
+    // 개선된 JSONP API 호출
+    const callAPI = async (action, data = null) => {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5)
+        
+        const cleanup = () => {
+          if (window[callbackName]) {
+            delete window[callbackName]
+          }
+          const scripts = document.querySelectorAll(`script[src*="${callbackName}"]`)
+          scripts.forEach(script => {
+            if (script.parentNode) {
+              script.parentNode.removeChild(script)
+            }
+          })
+        }
+
+        const timeoutId = setTimeout(() => {
+          cleanup()
+          reject(new Error('요청 시간이 초과되었습니다 (15초)'))
+        }, 15000)
+        
+        window[callbackName] = (result) => {
+          clearTimeout(timeoutId)
+          cleanup()
+
+          if (result && result.success) {
+            resolve(result)
+          } else {
+            console.error(`API 오류 (${action}):`, result?.error || 'Unknown error')
+            reject(new Error(result?.error || 'API 요청이 실패했습니다'))
+          }
+        }
+        
+        let url = `${API_URL}?callback=${callbackName}&action=${action}&_t=${Date.now()}`
+        
+        if (action === 'get') {
+          const { startDate, endDate } = getMonthDateRange()
+          url += `&startDate=${startDate}&endDate=${endDate}`
+        } else if (data) {
+          if (action === 'delete') {
+            url += `&id=${encodeURIComponent(data)}`
+          } else {
+            Object.keys(data).forEach(key => {
+              if (data[key] !== undefined && data[key] !== null) {
+                let value = data[key].toString()
+                if (key === 'purpose' && value.length > 80) {
+                  value = value.substring(0, 80)
+                }
+                if (key === 'name' && value.length > 30) {
+                  value = value.substring(0, 30)
+                }
+                url += `&${key}=${encodeURIComponent(value)}`
+              }
+            })
+          }
+        }
+        
+        const script = document.createElement('script')
+        script.src = url
+        script.onerror = () => {
+          clearTimeout(timeoutId)
+          cleanup()
+          reject(new Error('네트워크 연결을 확인해주세요'))
+        }
+        
+        document.head.appendChild(script)
+      })
+    }
+
     // 월별 예약 데이터 로드
     const loadMonthBookings = async () => {
       try {
         loadingMessage.value = '예약 데이터를 불러오는 중입니다...';
         monthLoading.value = true
-
-        // 실시간 동기화 설정 (기존 로직 대신)
-        setupRealtimeSync()
-
+        
+        const response = await callAPI('get')
+        
+        if (response && response.data) {
+          currentMonthBookings.value = response.data.filter(booking => 
+            booking && booking.id && booking.date && booking.name
+          ).sort((a, b) => {
+            const dateCompare = new Date(a.date) - new Date(b.date)
+            if (dateCompare !== 0) return dateCompare
+            return a.startTime.localeCompare(b.startTime)
+          })
+        } else {
+          throw new Error('응답 데이터가 올바르지 않습니다')
+        }
+        
       } catch (error) {
         console.error('월별 예약 로딩 실패:', error)
         showToast('error', '로딩 실패', error.message)
         currentMonthBookings.value = []
+      } finally {
         monthLoading.value = false
       }
     }
@@ -454,10 +512,14 @@ export default {
       try {
         initialLoading.value = true
         loadingMessage.value = '이번 달 예약 데이터를 불러오고 있습니다...'
-
-        // 실시간 동기화로 초기 로딩
-        setupRealtimeSync()
-
+        
+        await loadMonthBookings()
+        
+        loadingMessage.value = '완료!'
+        setTimeout(() => {
+          initialLoading.value = false
+        }, 500)
+        
       } catch (error) {
         console.error('초기 로딩 실패:', error)
         loadingMessage.value = '로딩에 실패했습니다'
@@ -477,31 +539,45 @@ export default {
 
       try {
         formLoading.value = true
-
-        const bookingData = {
+        
+        const booking = {
+          id: editingId.value || Date.now().toString(),
           date: newBooking.value.date,
           startTime: newBooking.value.startTime,
           endTime: newBooking.value.endTime,
           name: newBooking.value.name.trim(),
-          purpose: newBooking.value.purpose.trim()
+          purpose: newBooking.value.purpose.trim(),
+          createdAt: new Date().toISOString()
         }
 
-        let response
+        const action = editingId.value ? 'update' : 'create'
+        await callAPI(action, booking)
+
+        // 로컬 데이터 즉시 업데이트
         if (editingId.value) {
-          response = await FirebaseService.updateBooking(editingId.value, bookingData)
+          const index = currentMonthBookings.value.findIndex(b => b.id === editingId.value)
+          if (index !== -1) {
+            currentMonthBookings.value[index] = booking
+          }
         } else {
-          response = await FirebaseService.createBooking(bookingData)
+          const bookingDate = new Date(booking.date)
+          const currentYear = currentDate.value.getFullYear()
+          const currentMonth = currentDate.value.getMonth()
+          
+          if (bookingDate.getFullYear() === currentYear && bookingDate.getMonth() === currentMonth) {
+            currentMonthBookings.value.push(booking)
+            currentMonthBookings.value.sort((a, b) => {
+              const dateCompare = new Date(a.date) - new Date(b.date)
+              if (dateCompare !== 0) return dateCompare
+              return a.startTime.localeCompare(b.startTime)
+            })
+          }
         }
 
-        if (response.success) {
-          // Firebase 실시간 동기화로 자동 업데이트되므로 로컬 업데이트 불필요
-          resetForm()
-          closeBookingForm()
-          showToast('success', '완료!', editingId.value ? '예약이 수정되었습니다' : '예약이 등록되었습니다')
-        } else {
-          throw new Error(response.error)
-        }
-
+        resetForm()
+        closeBookingForm()
+        showToast('success', '완료!', editingId.value ? '예약이 수정되었습니다' : '예약이 등록되었습니다')
+        
       } catch (error) {
         console.error('예약 저장 실패:', error)
         showToast('error', '저장 실패', error.message)
@@ -519,23 +595,29 @@ export default {
 
       try {
         deleteLoading.value = true
-
-        const response = await FirebaseService.deleteBooking(bookingToDelete.value.id)
-
-        if (response.success) {
-          // Firebase 실시간 동기화로 자동 업데이트되므로 로컬 업데이트 불필요
+        
+        const response = await callAPI('delete', bookingToDelete.value.id)
+        
+        if (response && response.success) {
+          const deletedId = bookingToDelete.value.id
+          currentMonthBookings.value = currentMonthBookings.value.filter(b => b.id !== deletedId)
+          
           showDeleteModal.value = false
           selectedBooking.value = null
           bookingToDelete.value = null
-
+          
+          if (showDateModal.value && selectedDateString.value) {
+            selectedDateBookings.value = selectedDateBookings.value.filter(b => b.id !== deletedId)
+          }
+          
           showToast('success', '삭제 완료', '예약이 삭제되었습니다')
         } else {
-          throw new Error(response.error)
+          throw new Error(response?.error || '삭제 응답이 올바르지 않습니다')
         }
-
+        
       } catch (error) {
         console.error('예약 삭제 실패:', error)
-        showToast('error', '삭제 실패', error.message)
+        showToast('error', '삭제 실패', error.message || '예약 삭제 중 오류가 발생했습니다')
       } finally {
         deleteLoading.value = false
       }
@@ -543,19 +625,16 @@ export default {
 
     // 달 변경
     const changeMonth = async (direction) => {
-      monthLoading.value = true
-
       const newDate = new Date(currentDate.value)
       newDate.setMonth(newDate.getMonth() + direction)
       currentDate.value = newDate
-
-      // 새로운 월에 대한 실시간 동기화 재설정
-      setupRealtimeSync()
+      
+      await loadMonthBookings(newDate)
     }
 
     // 현재 달 새로고침
     const refreshCurrentMonth = async () => {
-      await loadMonthBookings()
+      await loadMonthBookings(currentDate.value)
       showToast('success', '새로고침 완료', '최신 데이터를 불러왔습니다')
     }
 
@@ -738,9 +817,6 @@ export default {
     })
     
     onUnmounted(() => {
-      if (unsubscribe) {
-        unsubscribe()
-      }
       window.removeEventListener('popstate', handlePopState)
     })
 
