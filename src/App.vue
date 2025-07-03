@@ -364,16 +364,30 @@ export default {
     const getMonthDateRange = (date = currentDate.value) => {
       const year = date.getFullYear()
       const month = date.getMonth()
-      const start = new Date(year, month, 1)
-      const end = new Date(year, month + 1, 0)
 
-      const toYMD = d => d.toLocaleDateString('ko-KR', {
-        year:'numeric', month:'2-digit', day:'2-digit'
-      }).replace(/\. /g, '-').replace('.', '')
+      // BookingCalendar와 동일한 로직
+      const firstDay = new Date(year, month, 1)
+      const lastDay = new Date(year, month + 1, 0)
+
+      // 달력에 표시되는 첫 번째 날 (일요일부터)
+      const startDate = new Date(firstDay)
+      startDate.setDate(startDate.getDate() - firstDay.getDay())
+
+      // 달력에 표시되는 마지막 날 (토요일까지)
+      const endDate = new Date(lastDay)
+      endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()))
+
+      // YYYY-MM-DD 형식으로 변환
+      const toYMD = d => {
+        const year = d.getFullYear()
+        const month = d.getMonth() + 1
+        const day = d.getDate()
+        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      }
 
       return {
-        startDate: toYMD(start),
-        endDate: toYMD(end)
+        startDate: toYMD(startDate),  // 달력 첫 날 (이전 달 포함)
+        endDate: toYMD(endDate)       // 달력 마지막 날 (다음 달 포함)
       }
     }
 
