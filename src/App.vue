@@ -16,7 +16,7 @@
               <div class="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
               <div class="absolute inset-0 m-[2px] sm:m-[3px] bg-white rounded-full"></div>
               <span class="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs font-bold text-gray-800">
-                SPC
+                SPCC
               </span>
             </div>
             <div> 
@@ -175,7 +175,7 @@
               <div class="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 opacity-80"></div>
               <div class="absolute inset-0 m-[2px] bg-gray-900 rounded-full"></div>
               <span class="absolute inset-0 flex items-center justify-center text-[9px] sm:text-[10px] font-bold text-white">
-                SPC
+                SPCC
               </span>
             </div>
             <span class="text-white font-semibold text-sm sm:text-base">스.피.커</span>
