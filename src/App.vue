@@ -3,26 +3,30 @@
     <!-- 전체 로딩 오버레이 -->
     <div v-if="initialLoading || monthLoading" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center px-4">
       <div class="animate-spin w-10 h-10 sm:w-12 sm:h-12 border-4 border-blue-500 border-t-transparent rounded-full mb-3"></div>
-      <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-2 text-center">비긴 어게인</h2>
+      <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-2 text-center">스.피.커</h2>
       <p class="text-sm sm:text-base text-gray-600 text-center">{{ loadingMessage }}</p>
     </div>
 
     <!-- 헤더 - 더 컴팩트하게 -->
-    <header class="bg-white shadow-lg border-b border-gray-100">
-      <div class="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        <div class="text-center">
-          <div class="flex items-center justify-center mb-2 sm:mb-3">
-            <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-2 sm:p-3 mr-2 sm:mr-3 shadow-md">
-              <img src="/logo.png" alt="비긴 어게인 로고" class="w-5 h-5 sm:w-6 sm:h-6 object-contain">
+    <header class="bg-white shadow-lg border-b border-gray-100"> 
+      <div class="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6"> 
+        <div class="text-center"> 
+          <div class="flex items-center justify-center mb-2 sm:mb-3"> 
+            <div class="relative w-9 h-9 sm:w-10 sm:h-10 mr-2 sm:mr-3">
+              <div class="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
+              <div class="absolute inset-0 m-[2px] sm:m-[3px] bg-white rounded-full"></div>
+              <span class="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs font-bold text-gray-800">
+                SPC
+              </span>
             </div>
-            <div>
-              <h1 class="text-xl sm:text-2xl font-bold text-gray-800">비긴 어게인</h1>
-              <p class="text-xs sm:text-sm text-blue-600 font-medium">연습실 예약 시스템</p>
-            </div>
-          </div>
-          <div class="h-1 w-16 sm:w-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
-        </div>
-      </div>
+            <div> 
+              <h1 class="text-xl sm:text-2xl font-bold text-gray-800">스.피.커</h1> 
+              <p class="text-xs sm:text-sm text-blue-600 font-medium">연습실 예약 시스템</p> 
+            </div> 
+          </div> 
+          <div class="h-1 w-16 sm:w-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div> 
+        </div> 
+      </div> 
     </header>
 
     <!-- 달력 -->
@@ -164,13 +168,17 @@
     <!-- 푸터 - 모바일에 최적화 -->
     <footer class="bg-gray-800 text-gray-300 py-6 sm:py-8 mt-8 sm:mt-12">
       <div class="max-w-md mx-auto px-3 sm:px-4">
-        <!-- 기존 푸터 내용 -->
+        <!-- 푸터 로고 - 헤더와 통일 -->
         <div class="text-center mb-4 sm:mb-6">
           <div class="flex items-center justify-center mb-2">
-            <div class="bg-blue-600 rounded-full p-2 mr-2">
-              <img src="/logo.png" alt="비긴 어게인 로고" class="w-3 h-3 sm:w-4 sm:h-4 object-contain">
+            <div class="relative w-7 h-7 sm:w-8 sm:h-8 mr-2">
+              <div class="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 opacity-80"></div>
+              <div class="absolute inset-0 m-[2px] bg-gray-900 rounded-full"></div>
+              <span class="absolute inset-0 flex items-center justify-center text-[9px] sm:text-[10px] font-bold text-white">
+                SPC
+              </span>
             </div>
-            <span class="text-white font-semibold text-sm sm:text-base">비긴 어게인 모임</span>
+            <span class="text-white font-semibold text-sm sm:text-base">스.피.커</span>
           </div>
           <p class="text-xs sm:text-sm text-gray-400">연습실 예약 시스템</p>
         </div>
@@ -182,10 +190,10 @@
           </h4>
           <div class="space-y-2 text-xs sm:text-sm">
             <div class="flex items-start">
-              <span class="mr-2 text-yellow-400 flex-shrink-0">💰</span>
+              <span class="mr-2 text-yellow-400 flex-shrink-0">🎚️</span>
               <div>
-                <strong class="text-white">게스트 연습실 사용비:</strong> 1인당 5,000원<br>
-                <span class="text-gray-400">모임 통장으로 입금해 주세요</span>
+                <strong class="text-white">소리 관련 안내:</strong><br>
+                <span class="text-gray-400">앰프 사용은 되도록 자제해 주시고,<br>사용 시에는 볼륨을 낮춰 주시기 바랍니다.</span>
               </div>
             </div>
             
@@ -227,7 +235,7 @@
         </div>
         
         <div class="text-center text-xs text-gray-500 border-t border-gray-700 pt-3 sm:pt-4">
-          Made with ❤️ for 비긴 어게인
+          Made with ❤️ for 스.피.커
         </div>
       </div>
     </footer>
