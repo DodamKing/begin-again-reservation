@@ -210,17 +210,19 @@
               <div>
                 <strong class="text-white">출입 정보:</strong><br>
                 <span class="text-gray-400">
-                  현관 비밀번호: {{ doorPassword }}<br>
-                  호실 비밀번호: {{ roomPassword }}
+                  호실 비밀번호: {{ roomPassword }} <br>
+                  <span class="text-gray-400">와이파이 비밀번호: CQN2B@8124</span><br>
+                  (정수기 옆 QR 등록가능)
                 </span>
               </div>
             </div>
             
             <div class="flex items-start">
               <span class="mr-2 text-red-400 flex-shrink-0">🚪</span>
-              <div>
-                <strong class="text-white">퇴실 시 주의:</strong><br>
-                <span class="text-gray-400">나갈 때 '#' 버튼을 눌러 출입문을 잠궈주세요!</span>
+              <div class="text-gray-400">
+                <strong class="text-white">퇴실 시:</strong>
+                <br>전체 소등·에어컨 전원 OFF 후,
+                <br><strong class="text-white">'#'</strong> 버튼으로 출입문을 잠궈주세요!
               </div>
             </div>
 
