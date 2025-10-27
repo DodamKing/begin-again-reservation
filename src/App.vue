@@ -183,54 +183,70 @@
           <p class="text-xs sm:text-sm text-gray-400">연습실 예약 시스템</p>
         </div>
         
-        <div class="bg-gray-700 rounded-lg p-3 sm:p-4 mb-4">
-          <h4 class="text-white font-medium mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
+        <div class="bg-gray-700 rounded-lg p-4 sm:p-5 mb-4 sm:mb-6">
+          <h4 class="text-white font-medium mb-3 sm:mb-4 flex items-center text-sm sm:text-base">
             <span class="mr-2">💡</span>
             이용 안내
           </h4>
-          <div class="space-y-2 text-xs sm:text-sm">
-            <div class="flex items-start">
-              <span class="mr-2 text-yellow-400 flex-shrink-0">🎚️</span>
+          <div class="space-y-3 sm:space-y-4 text-xs sm:text-sm">
+            <!-- 소리 관련 -->
+            <div class="flex items-start gap-2">
+              <span class="w-5 text-yellow-400 flex-shrink-0 mt-0.5">🎚️</span>
               <div>
-                <strong class="text-white">소리 관련 안내:</strong><br>
-                <span class="text-gray-400">앰프 사용은 되도록 자제해 주시고,<br>사용 시에는 볼륨을 낮춰 주시기 바랍니다.</span>
+                <strong class="text-white">소리 관련 안내:</strong>
+                <p class="text-gray-400 mt-1">
+                  앰프 사용은 되도록 자제해 주시고,<br>
+                  사용 시에는 볼륨을 낮춰 주시기 바랍니다.
+                </p>
               </div>
             </div>
             
-            <div class="flex items-start">
-              <span class="mr-2 text-blue-400 flex-shrink-0">📍</span>
+            <!-- 주소 -->
+            <div class="flex items-start gap-2">
+              <span class="w-5 text-blue-400 flex-shrink-0 mt-0.5">📍</span>
               <div>
-                <strong class="text-white">주소:</strong><br>
-                <span class="text-gray-400 break-words">충청북도 청주시 서원구 내수동로 165<br>예술원 24시 연습실 3층 2호실</span>
+                <strong class="text-white">주소:</strong>
+                <div class="text-gray-400 mt-1">
+                  <div>충청북도 청주시 서원구 내수동로 165</div>
+                  <div>예술원 24시 연습실 3층 2호실</div>
+                </div>
               </div>
             </div>
             
-            <div class="flex items-start">
-              <span class="mr-2 text-green-400 flex-shrink-0">🔐</span>
-              <div>
-                <strong class="text-white">출입 정보:</strong><br>
-                <span class="text-gray-400">
-                  호실 비밀번호: {{ roomPassword }} <br>
-                  <span class="text-gray-400">와이파이 비밀번호: CQN2B@8124</span><br>
-                  (정수기 옆 QR 등록가능)
-                </span>
+            <!-- 출입 정보 -->
+            <div class="flex items-start gap-2">
+              <span class="w-5 text-green-400 flex-shrink-0 mt-0.5">🔐</span>
+              <div class="w-full">
+                <strong class="text-white">출입 정보:</strong>
+                <div class="text-gray-400 mt-1 space-y-1">
+                  <div>호실 비밀번호: <span class="text-white font-mono">{{ roomPassword }}</span></div>
+                  <div>와이파이: <span class="text-white font-mono">CQN2B@8124</span></div>
+                  <div class="text-[11px] sm:text-xs opacity-80">(정수기 옆 QR 등록가능)</div>
+                </div>
               </div>
             </div>
             
-            <div class="flex items-start">
-              <span class="mr-2 text-red-400 flex-shrink-0">🚪</span>
-              <div class="text-gray-400">
-                <strong class="text-white">퇴실 시:</strong>
-                <br>전체 소등·에어컨 전원 OFF 후,
-                <br><strong class="text-white">'#'</strong> 버튼으로 출입문을 잠궈주세요!
+            <!-- 퇴실 -->
+            <div class="flex items-start gap-2 bg-red-900/10 rounded-lg p-2 -mx-1">
+              <span class="w-5 text-red-400 flex-shrink-0 mt-0.5">🚪</span>
+              <div>
+                <strong class="text-white">퇴실 시 필수:</strong>
+                <p class="text-gray-300 mt-1">
+                  전체 소등·에어컨 전원 OFF 후,<br>
+                  <strong class="text-white">'#'</strong> 버튼으로 출입문을 잠궈주세요!
+                </p>
               </div>
             </div>
 
-            <div class="flex items-start">
-              <span class="mr-2 text-orange-400 flex-shrink-0">🚗</span>
+            <!-- 주차 -->
+            <div class="flex items-start gap-2">
+              <span class="w-5 text-orange-400 flex-shrink-0 mt-0.5">🚗</span>
               <div>
-                <strong class="text-white">주차 안내:</strong><br>
-                <span class="text-gray-400">연습실 옆 주차장 주차 금지<br>길가나 상가에 주차하고 오셔야 합니다</span>
+                <strong class="text-white">주차 안내:</strong>
+                <p class="text-gray-400 mt-1">
+                  연습실 옆 주차장 주차 금지<br>
+                  길가나 상가에 주차하고 오셔야 합니다
+                </p>
               </div>
             </div>
           </div>
