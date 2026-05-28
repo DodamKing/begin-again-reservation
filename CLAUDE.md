@@ -25,3 +25,14 @@ Vue 3 (Composition API) + Vite + Firebase Firestore (실시간 동기화) + Pini
 - `npm run build` — 프로덕션 빌드
 - `npm run lint` — ESLint --fix
 - `npm run format` — Prettier
+
+## 향후 개선 (시간 될 때)
+첫 진입 번들 사이즈가 약 500KB(gzip 142KB). 빌드 시 Vite가 500KB 초과 청크 경고. 동작엔 문제 없음. 줄이려면:
+
+- **Firebase 동적 import** (효과 큼) — `firebaseService` import를 `onMounted` 안의 `await import()`로 옮기면 초기 번들에서 ~300KB 빠지고 Vue 코어만 받으면 화면이 먼저 뜸. 모바일 첫 진입 체감 큰 개선
+- **manualChunks로 vendor 분리** (캐시 효율) — `vite.config.js`에 Firebase/Vue 등 vendor 청크 분리. 우리 코드 배포해도 vendor 캐시 유지되어 재방문 시 효과
+- **flatpickr 동적 import** (가성비 작음) — ~40KB 빠짐. 위 두 가지 대비 미미함
+
+크기 더 줄이긴 어려움: Firebase는 이미 modular import, `firestore/lite`는 `onSnapshot` 미지원이라 사용 불가.
+
+추가로 두 번째 방문 즉시 표시까지 원하면 Firestore `persistentLocalCache` 활성화 ([firebase/config.js](src/firebase/config.js)에서 `initializeFirestore` + `persistentLocalCache()`로 교체). 클라이언트 IndexedDB 캐시라 다른 앱·Firestore 서버에 영향 없음.
