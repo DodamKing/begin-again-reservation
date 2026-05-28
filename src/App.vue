@@ -1,12 +1,5 @@
 <template>
   <div class="bg-gray-50 min-h-screen">
-    <!-- 전체 로딩 오버레이 -->
-    <div v-if="initialLoading || monthLoading" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center px-4">
-      <div class="animate-spin w-10 h-10 sm:w-12 sm:h-12 border-4 border-blue-500 border-t-transparent rounded-full mb-3"></div>
-      <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-2 text-center">스.피.커</h2>
-      <p class="text-sm sm:text-base text-gray-600 text-center">{{ loadingMessage }}</p>
-    </div>
-
     <!-- 헤더 - 더 컴팩트하게 -->
     <header class="bg-white shadow-lg border-b border-gray-100"> 
       <div class="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6"> 
@@ -30,11 +23,11 @@
     </header>
 
     <!-- 달력 -->
-    <BookingCalendar 
+    <BookingCalendar
       :bookings="currentMonthBookings"
       :current-date="currentDate"
       :selected-date="selectedDate"
-      :loading="monthLoading"
+      :loading="monthLoading || initialLoading"
       @selectDate="showDateBookings"
       @changeMonth="changeMonth"
     />
@@ -261,7 +254,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { FirebaseService } from './services/firebaseService'
 import BookingCalendar from './components/BookingCalendar.vue'
 import BookingForm from './components/BookingForm.vue'
@@ -382,6 +375,11 @@ export default {
           if (monthLoading.value) {
             monthLoading.value = false
           }
+        },
+        () => {
+          initialLoading.value = false
+          monthLoading.value = false
+          showToast('error', '예약을 불러오지 못했어요', '잠시 후 다시 시도하거나 문의해 주세요')
         }
       )
     }
@@ -771,6 +769,17 @@ export default {
     watch(() => newBooking.value.startTime, checkTimeConflict)
     watch(() => newBooking.value.endTime, checkTimeConflict)
 
+    // 모달 열렸을 때 배경 스크롤 잠금
+    const anyModalOpen = computed(() =>
+      showBookingForm.value ||
+      showDateModal.value ||
+      !!selectedBooking.value ||
+      showDeleteModal.value
+    )
+    watch(anyModalOpen, (open) => {
+      document.body.style.overflow = open ? 'hidden' : ''
+    })
+
     // Lifecycle
     onMounted(async () => {
       await initialLoad()
@@ -782,6 +791,7 @@ export default {
         unsubscribe()
       }
       window.removeEventListener('popstate', handlePopState)
+      document.body.style.overflow = ''
     })
 
     return {

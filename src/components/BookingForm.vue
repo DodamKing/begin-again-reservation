@@ -35,13 +35,13 @@
             <!-- 시작 시간 -->
             <div>
               <label class="block text-xs text-gray-600 mb-1">시작 시간</label>
-              <button 
+              <button
                 type="button"
                 @click="openStartTimeModal"
                 class="w-full px-3 py-3 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-left flex justify-between items-center"
               >
-                <span>{{ booking.startTime || '선택하세요' }}</span>
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span class="truncate" :class="{ 'text-gray-400': !booking.startTime }">{{ booking.startTime || '--:--' }}</span>
+                <svg class="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
               </button>
@@ -50,13 +50,13 @@
             <!-- 종료 시간 -->
             <div>
               <label class="block text-xs text-gray-600 mb-1">종료 시간</label>
-              <button 
+              <button
                 type="button"
                 @click="openEndTimeModal"
                 class="w-full px-3 py-3 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-left flex justify-between items-center"
               >
-                <span>{{ booking.endTime || '선택하세요' }}</span>
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span class="truncate" :class="{ 'text-gray-400': !booking.endTime }">{{ booking.endTime || '--:--' }}</span>
+                <svg class="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
               </button>

@@ -113,8 +113,14 @@ export class FirebaseService {
         }
     }
 
-    // 실시간 리스너 설정 (선택사항)
-    static subscribeToBookings(startDate, endDate, callback) {
+    // 실시간 리스너 설정
+    static subscribeToBookings(startDate, endDate, callback, onError) {
+        if (!db) {
+            console.warn('Firebase 미설정 - 개발 모드, 빈 데이터 반환')
+            callback([])
+            return () => {}
+        }
+
         const q = query(
             collection(db, COLLECTION_NAME),
             where('date', '>=', startDate),
@@ -123,15 +129,22 @@ export class FirebaseService {
             orderBy('startTime')
         )
 
-        return onSnapshot(q, (snapshot) => {
-            const bookings = []
-            snapshot.forEach((doc) => {
-                bookings.push({
-                    id: doc.id,
-                    ...doc.data()
+        return onSnapshot(
+            q,
+            (snapshot) => {
+                const bookings = []
+                snapshot.forEach((doc) => {
+                    bookings.push({
+                        id: doc.id,
+                        ...doc.data()
+                    })
                 })
-            })
-            callback(bookings)
-        })
+                callback(bookings)
+            },
+            (error) => {
+                console.error('실시간 동기화 오류:', error)
+                if (onError) onError(error)
+            }
+        )
     }
   }
